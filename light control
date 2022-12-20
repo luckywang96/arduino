@@ -1,0 +1,106 @@
+#include <Adafruit_NeoPixel.h>
+
+int numberOfBreaths = 3; // Change this number to change the number of breaths (LED Sequence) When triggerd
+
+#define PIN 6
+
+int TOTAL_LEDS = 210;
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(210, PIN, NEO_GRB + NEO_KHZ800);
+
+// Define Pins for Distance sensor
+#define trigPin 8 //Define the HC-SE04 triger on pin 6 on the arduino
+#define echoPin 7 //Define the HC-SE04 echo on pin 5 on the arduino
+
+void setup()
+
+{
+
+  Serial.begin (9600); //Start the serial
+  // Initialise distance Sensor
+  pinMode(trigPin, OUTPUT); //set the trigpin to output
+  pinMode(echoPin, INPUT); //set the echopin to input
+
+  // Initialise NeoPixles
+  strip.begin();
+  strip.setBrightness(25);  // Lower brightness and save eyeballs!
+  strip.show(); // Initialize all pixels to 'off'
+
+}
+void loop()
+
+{
+
+  int duration, distance; //Define two intregers duration and distance to be used to save data
+
+  digitalWrite(trigPin, HIGH); //write a digital high to the trigpin to send out the pulse
+
+  delayMicroseconds(5000); //wait half a millisecond
+
+  digitalWrite(trigPin, LOW); //turn off the trigpin
+
+  duration = pulseIn(echoPin, HIGH); //measure the time using pulsein when the echo receives a signal set it to high
+
+  distance = (duration / 2) / 29.1; //distance is the duration devided by 2 becasue the signal traveled from the trigpin then back to the echo pin, then divide by 29.1 to convert to centimeters
+
+  Serial.println(distance);
+
+
+
+  if (distance < 5) //if the distance is less than 13 CM
+
+  { //Breath ------------------------>
+    for (int n = 0; n < numberOfBreaths; n++) {
+      Fade_In();
+      Fade_Out();
+    }
+
+  } //End Breath <---------------------
+
+  else {
+
+    LEDs_OFF();
+
+  }
+
+
+}
+
+
+//Fade OUT
+
+void Fade_Out() {
+  for (int i = 255; i > 0; i--)
+  {
+    for (int ledNumber = 0; ledNumber < TOTAL_LEDS; ledNumber++) {
+      strip.setPixelColor(ledNumber, i, i, i); // RGBvalues (255, 255, 255) for white
+    }
+    strip.show();
+    delay(5);
+  }
+}
+
+//Fade IN
+
+void Fade_In()
+{
+
+  for (int i = 0; i < 255; i++)
+  {
+    for (int ledNumber = 0; ledNumber < TOTAL_LEDS; ledNumber++) {
+      strip.setPixelColor(ledNumber, i, i, i); // RGBvalues (255, 255, 255) for white
+    }
+    strip.show();
+    delay(0);
+  }
+}
+
+// All LEDs OFF
+void LEDs_OFF() {
+  for (int ledNumber = 0; ledNumber < TOTAL_LEDS; ledNumber++) {
+    strip.setPixelColor(ledNumber, 0, 0, 0); // RGBvalues (255, 255, 255) for white
+  }
+  strip.show();
+  delay(0);
+
+}
